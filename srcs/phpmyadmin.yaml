@@ -2,15 +2,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: phpmyadmin-service
+  name: phpmyadmin
 spec:
-  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80
+      nodePort: 5000
   selector:
     app: phpmyadmin
-  ports:
-  - protocol: TCP
-    port: 80
-    NodePort: 5000
+  type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -35,9 +35,7 @@ spec:
             - containerPort: 80
           env:
             - name: PMA_HOST
-              value: wordpress-mysql
-            - name: PMA_PORT
-              value: "5000"
+              value: mysql
             - name: PMA_USER
               value: root
             - name: PMA_PASSWORD

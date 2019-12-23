@@ -10,8 +10,16 @@
 # minikube service hello-minikube --url
 # kubectl delete services hello-minikube
 
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
+minikube start --vm-driver=virtualbox --extra-config=apiserver.service-node-port-range=1-30000
 
-kubectl apply -f srcs/mysql.yaml
-kubectl apply -f srcs/phpmyadmin.yaml
-kubectl apply -f srcs/wordpress.yaml
+kubectl apply -f srcs/mysql.yaml ### MySQL
+kubectl apply -f srcs/wordpress.yaml ### Wordpress
+kubectl apply -f srcs/phpmyadmin.yaml ### Phpmyadmin
+#kubectl apply -f srcs/ftps.yaml ### Phpmyadmin
+
+# Dashboard
+
+kubectl apply -f https://raw.githubusercontent.com/giantswarm/prometheus/master/manifests-all.yaml
+kubectl port-forward --namespace monitoring service/grafana 3000:3000
+# Ingress
+# kubectl apply -f srcs/ingress.yaml
