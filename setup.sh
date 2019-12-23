@@ -10,9 +10,13 @@
 # minikube service hello-minikube --url
 # kubectl delete services hello-minikube
 
+eval $(minikube docker-env)
+
+docker build -t mysql_alpine srcs/mysql
+
 minikube start --vm-driver=virtualbox --extra-config=apiserver.service-node-port-range=1-30000
 
-kubectl apply -f srcs/mysql.yaml ### MySQL
+kubectl apply -f srcs/mysql/mysql.yaml ### MySQL
 kubectl apply -f srcs/wordpress.yaml ### Wordpress
 kubectl apply -f srcs/phpmyadmin.yaml ### Phpmyadmin
 #kubectl apply -f srcs/ftps.yaml ### Phpmyadmin
