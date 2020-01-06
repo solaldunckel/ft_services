@@ -36,6 +36,8 @@ spec:
           env:
             - name: PMA_HOST
               value: mysql
+            - name: PMA_PORT
+              value: "3306"
             - name: PMA_USER
               value: root
             - name: PMA_PASSWORD

@@ -41,10 +41,10 @@ spec:
     metadata:
       labels:
         app: wordpress
-        tier: frontend
     spec:
       containers:
-      - image: wordpress:4.8-apache
+      - image: wordpress_alpine
+        imagePullPolicy: Never
         name: wordpress
         env:
         - name: WORDPRESS_DB_HOST
