@@ -1,58 +1,53 @@
-# Check if the pod is deployed
-function kubernetes_wait()
-{
-	printf "Deploying "$@"...\n"
-	sleep 2;
-	while [[ $(kubectl get pods -l app=$@ -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do
-		sleep 1;
+LIST=$(find ./srcs -name "*.yaml" -exec basename {} \;)
+
+if [[ $1 = 'clean' ]]
+then
+	for FILE in $LIST
+	do
+		kubectl delete -f srcs/$FILE
 	done
-	printf $@" deployed!\n"
-}
+	exit
+fi
 
 # Start the cluster
 if [[ $(minikube status | grep -c "Running") == 0 ]]
 then
-	make clean
 	minikube start --cpus=4 --memory 4000 --vm-driver=virtualbox --extra-config=apiserver.service-node-port-range=1-35000
+	minikube addons enable ingress
 fi
-
-helm delete telegraf
-helm delete influxdb
-helm delete grafana
 
 # Build Docker images
 eval $(minikube docker-env)
-docker build -t mysql_alpine srcs/mysql
+
 docker build -t wordpress_alpine srcs/wordpress
+docker build -t nginx_alpine srcs/nginx
+docker build -t ftps_alpine srcs/ftps
 
-# MySQL
-kubectl apply -f srcs/mysql/mysql.yaml ### MySQL
-kubernetes_wait mysql
+# Build all services
+for FILE in $LIST
+do
+	printf "Deploying "${FILE%%.*}"...\n"
+	kubectl apply -f srcs/$FILE > /dev/null
+	while [[ $(kubectl get pods -l app=${FILE%%.*} -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do
+		sleep 1;
+	done
+	printf "✓ "${FILE%%.*}" deployed!\n"
+done
 
-# Wordpress
-kubectl apply -f srcs/wordpress.yaml ### Wordpress
-kubernetes_wait wordpress
+# Import wordpress database
+kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/mysql/wordpress.sql > /dev/null
 
-# Phpmyadmin
-kubectl apply -f srcs/phpmyadmin.yaml ### Phpmyadmin
-kubernetes_wait phpmyadmin
+printf "✓ ft_services deployment complete !\n"
+printf "➜ You can access the project via this url: "$(minikube ip)"\n"
 
-helm install -f srcs/telegraf.yaml telegraf stable/telegraf
-helm install -f srcs/influxdb.yaml influxdb stable/influxdb
-helm install -f srcs/grafana.yaml grafana stable/grafana
+unset LIST
 
-# minikube addons enable ingress
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
 
-#kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
-#kubectl apply -f srcs/nginx.yaml
-
-
-# kubectl apply -f srcs/influxdb.yaml ### Phpmyadmin
-# kubernetes_wait influxdb
-#
-# kubectl apply -f srcs/grafana.yaml ### Phpmyadmin
-# kubernetes_wait grafana
-
-minikube service wordpress --url
-
-# helm install --name influxdb stable/influxdb
+### TODO:
+# - SSH for nginx
+# - FTPS fix
+# - Ingress Controller + Nginx
+# - Grafana + InfluxDB
+# - Monitor containers ??
+# - Check restarts

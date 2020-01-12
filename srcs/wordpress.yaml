@@ -6,7 +6,8 @@ metadata:
     app: wordpress
 spec:
   ports:
-    - port: 80
+    - protocol: TCP
+      port: 80
       nodePort: 5050
   selector:
     app: wordpress
