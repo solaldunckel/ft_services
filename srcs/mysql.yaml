@@ -43,7 +43,8 @@ spec:
         app: mysql
     spec:
       containers:
-      - image: ipburger/mysql-alpine.docker
+      - image: mysql_alpine
+        imagePullPolicy: Never
         name: mysql
         env:
         - name: MYSQL_ROOT_PASSWORD

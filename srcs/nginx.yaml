@@ -9,6 +9,10 @@ spec:
   selector:
     app: nginx
   ports:
+    - name: ssh
+      port: 22
+      nodePort: 22
+      targetPort: ssh
     - name: http
       port: 80
       nodePort: 80
@@ -40,7 +44,14 @@ spec:
       - image: nginx_alpine
         imagePullPolicy: Never
         name: nginx
+        env:
+        - name: SSH_USER
+          value: root
+        - name: SSH_PASSWORD
+          value: password
         ports:
+        - containerPort: 22
+          name: ssh
         - containerPort: 80
           name: http
         - containerPort: 443

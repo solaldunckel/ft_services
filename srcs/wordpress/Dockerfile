@@ -25,8 +25,8 @@ RUN unzip -q wordpress-${VERSION_WORDPRESS}.zip -d ./ && \
         apk del .build-deps
 
 # Copy of the HTTPD startup script
-COPY ./scripts/start.sh ./start.sh
-COPY ./files/wp-config.php ${APACHE_SERVER_PATH}/wp-config.php
+COPY scripts/start.sh start.sh
+COPY files/wp-config.php ${APACHE_SERVER_PATH}/wp-config.php
 
 EXPOSE 80
 

@@ -1,0 +1,63 @@
+<script language="Javascript">
+	document.addEventListener('click', function(event) {
+	  var target = event.target;
+	  if (target.tagName.toLowerCase() == 'a')
+	  {
+	      var port = target.getAttribute('href').match(/^:(\d+)(.*)/);
+	      if (port)
+	      {
+	         target.href = window.location.origin;
+	         target.port = port[1];
+	      }
+	  }
+	}, false);
+</script>
+
+<html>
+	<head>
+	    <title>ft_services</title>
+		<style type="text/css">
+			body {
+				font-family: Helvetica, Geneva, Arial, SunSans-Regular, sans-serif;
+				color: #00ffff;
+				background-color: #121212
+				}
+			#navbar {
+				margin:0 auto;/*centrage marges automatiques*/
+				padding:5px 0;
+				text-align:center;/*centre les inline qu'il contient*/
+				font-size: 25px;
+				#navbar a{
+					display:inline-block;
+					margin-left:5px;
+					padding: 5px 10px;
+					text-decoration:none;
+					color: #AAAAAA;
+					font-size: 25px;
+					}
+				}
+			.parent {
+				margin-top: 50vh; /* poussé de la moitié de hauteur de viewport */
+  				transform: translateY(-50%); /* tiré de la moitié de sa propre hauteur */
+			}
+			h1 {
+				font-family: Helvetica, Geneva, Arial, SunSans-Regular, sans-serif;
+				font-size: 40px;
+				}
+		</style>
+	</head>
+
+	<body>
+		<center>
+		<div class="parent">
+			<h1>ft_services by sdunckel</h1>
+			<br>
+			<ul id="navbar">
+				<a href=":5050">Wordpress</a> |
+				<a href=":5000">Phpmyadmin</a> |
+				<a href=":3000">Grafana</a>
+			</ul>
+		</div>
+		</center>
+	</body>
+</html>
