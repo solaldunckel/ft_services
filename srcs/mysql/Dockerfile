@@ -2,9 +2,8 @@ FROM alpine:latest
 
 RUN apk add --no-cache mysql mysql-client
 
-COPY bin/startup.sh /startup.sh
-COPY conf/my.cnf /etc/mysql/my.cnf
-COPY conf/wordpress.sql /wordpress.sql
+COPY scripts/start.sh /start.sh
+COPY files/my.cnf /etc/mysql/my.cnf
 
 RUN mkdir -p /run/mysqld && mkdir -p /dbinit.d
 
@@ -13,4 +12,4 @@ VOLUME /db
 EXPOSE 3306
 
 HEALTHCHECK CMD ["mysqladmin", "ping"]
-CMD ["/startup.sh"]
+CMD ["/start.sh"]
