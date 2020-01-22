@@ -1,8 +1,10 @@
-# Setup in /goinfre for 42
-if [ -d "/goinfre/$USER" ]; then
+### Setup in /goinfre for 42
+
+if [ -d "/goinfre" ]; then
 	# Ensure USER variabe is set
 	[ -z "${USER}" ] && export USER=`whoami`
 
+	mkdir -p /goinfre/$USER
 	# Config
 	docker_destination="/goinfre/$USER/docker" #=> Select docker destination (goinfre is a good choice)
 
@@ -19,6 +21,8 @@ if [ -d "/goinfre/$USER" ]; then
 	export MINIKUBE_HOME="/goinfre/$USER"
 fi
 
+###
+
 # Build function
 function apply_yaml()
 {
@@ -31,16 +35,19 @@ function apply_yaml()
 	printf "✓	$@ deployed!\n"
 }
 
-# yaml list in $LIST
-LIST=$(find ./srcs -name "*.yaml" -exec basename {} \;)
+# Deployment list
+SERVICE_LIST="mysql wordpress phpmyadmin nginx ftps influxdb grafana"
 
 # Clean if arg1 is clean
 if [[ $1 = 'clean' ]]
 then
-	for FILE in $LIST
+	printf "➜	Cleaning all services...\n"
+	for SERVICE in $SERVICE_LIST
 	do
-		kubectl delete -f srcs/$FILE
+		kubectl delete -f srcs/$SERVICE.yaml > /dev/null
 	done
+	kubectl delete -f srcs/ingress.yaml > /dev/null
+	printf "✓	Clean complete !\n"
 	exit
 fi
 
@@ -48,6 +55,7 @@ fi
 if [[ $(minikube status | grep -c "Running") == 0 ]]
 then
 	minikube start --cpus=2 --memory 4000 --vm-driver=virtualbox --extra-config=apiserver.service-node-port-range=1-35000
+	minikube addons enable metrics-server
 	minikube addons enable ingress
 fi
 
@@ -60,12 +68,15 @@ eval $(minikube docker-env)
 docker build -t mysql_alpine srcs/mysql
 docker build -t wordpress_alpine srcs/wordpress
 docker build -t nginx_alpine srcs/nginx
-# docker build -t ftps_alpine srcs/ftps
+docker build -t ftps_alpine srcs/ftps
 
-apply_yaml mysql
-apply_yaml wordpress
-apply_yaml phpmyadmin
-apply_yaml nginx
+# Deploy services
+for SERVICE in $SERVICE_LIST
+do
+	apply_yaml $SERVICE
+done
+
+kubectl apply -f srcs/ingress.yaml > /dev/null
 
 # Import Wordpress database
 cp srcs/mysql/files/wordpress.sql srcs/mysql/files/wordpress-target.sql
@@ -86,9 +97,7 @@ printf "➜	You can access ft_services via this url: $MINIKUBE_IP\n"
 # kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
 
 ### TODO:
-# - SSH for nginx
 # - FTPS fix
 # - Ingress Controller + Nginx
-# - Grafana + InfluxDB
-# - Monitor containers ??
+# - Monitor containers / Telegraf / Metrics Server ??
 # - Check restarts

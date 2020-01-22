@@ -52,7 +52,7 @@ spec:
         env:
         - name: FTP_USER
           value: admin
-        - name: FTP_PASS
+        - name: FTP_PASSWORD
           value: admin
         ports:
         - containerPort: 21

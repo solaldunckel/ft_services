@@ -1,18 +1,9 @@
 #!/bin/sh
-
-touch /var/log/vsftpd.log
-
-if [ -z "$FTP_USER" ]; then
-  FTP_USER="admin"
-  FTP_PASS="admin"
-fi
-
-FOLDER="/ftps/$FTP_USER"
-
 mkdir -p /ftps/$FTP_USER
-echo -e "$FTP_PASS\n$FTP_PASS" | adduser -h $FOLDER -s /sbin/nologin $FTP_USER
-chown -R $FTP_USER:$FTP_USER $FOLDER
-chmod a-w $FOLDER
+adduser -h /ftps/$FTP_USER -s /sbin/nologin -D $FTP_USER
+echo "$FTP_USER:$FTP_PASSWORD" | chpasswd
+chown -R $FTP_USER:$FTP_USER /ftps/$FTP_USER
+chmod a-w /ftps/$FTP_USER
 
 # Used to run custom commands inside container
 if [ ! -z "$1" ]; then
