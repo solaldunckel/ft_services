@@ -9,18 +9,15 @@ spec:
   selector:
     app: nginx
   ports:
-    - name: ssh
-      port: 22
-      nodePort: 22
-      targetPort: ssh
+    # - name: ssh
+    #   port: 22
+    #   nodePort: 22
     - name: http
       port: 80
       nodePort: 80
-      targetPort: http
     - name: https
       port: 443
       nodePort: 443
-      targetPort: https
 ---
 apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
@@ -50,8 +47,8 @@ spec:
         - name: SSH_PASSWORD
           value: admin
         ports:
-        - containerPort: 22
-          name: ssh
+        # - containerPort: 22
+        #   name: ssh
         - containerPort: 80
           name: http
         - containerPort: 443

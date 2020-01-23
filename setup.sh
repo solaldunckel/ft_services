@@ -36,7 +36,7 @@ function apply_yaml()
 }
 
 # Deployment list
-SERVICE_LIST="mysql wordpress phpmyadmin nginx ftps influxdb grafana"
+SERVICE_LIST="mysql wordpress phpmyadmin nginx ftps influxdb grafana telegraf"
 
 # Clean if arg1 is clean
 if [[ $1 = 'clean' ]]
@@ -76,7 +76,7 @@ do
 	apply_yaml $SERVICE
 done
 
-kubectl apply -f srcs/ingress.yaml > /dev/null
+# kubectl apply -f srcs/ingress.yaml > /dev/null
 
 # Import Wordpress database
 cp srcs/mysql/files/wordpress.sql srcs/mysql/files/wordpress-target.sql
