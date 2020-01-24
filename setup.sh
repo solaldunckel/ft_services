@@ -24,6 +24,7 @@ fi
 ###
 
 # Build function
+
 function apply_yaml()
 {
 	kubectl apply -f srcs/$@.yaml > /dev/null
@@ -36,9 +37,11 @@ function apply_yaml()
 }
 
 # Deployment list
+
 SERVICE_LIST="mysql wordpress phpmyadmin nginx ftps influxdb grafana telegraf"
 
 # Clean if arg1 is clean
+
 if [[ $1 = 'clean' ]]
 then
 	printf "➜	Cleaning all services...\n"
@@ -47,11 +50,13 @@ then
 		kubectl delete -f srcs/$SERVICE.yaml > /dev/null
 	done
 	kubectl delete -f srcs/ingress.yaml > /dev/null
+	kubectl delete -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
 	printf "✓	Clean complete !\n"
 	exit
 fi
 
 # Start the cluster if it's not running
+
 if [[ $(minikube status | grep -c "Running") == 0 ]]
 then
 	minikube start --cpus=2 --memory 4000 --vm-driver=virtualbox --extra-config=apiserver.service-node-port-range=1-35000
@@ -62,23 +67,29 @@ fi
 MINIKUBE_IP=$(minikube ip)
 
 # Set the docker images in Minikube
+
 eval $(minikube docker-env)
 
 # Build Docker images
+
 docker build -t mysql_alpine srcs/mysql
 docker build -t wordpress_alpine srcs/wordpress
 docker build -t nginx_alpine srcs/nginx
 docker build -t ftps_alpine srcs/ftps
+docker build -t grafana_alpine srcs/grafana
 
 # Deploy services
+
 for SERVICE in $SERVICE_LIST
 do
 	apply_yaml $SERVICE
 done
 
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
 # kubectl apply -f srcs/ingress.yaml > /dev/null
 
 # Import Wordpress database
+
 cp srcs/mysql/files/wordpress.sql srcs/mysql/files/wordpress-target.sql
 sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/mysql/files/wordpress-target.sql
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/mysql/files/wordpress-target.sql
@@ -87,17 +98,12 @@ rm -rf srcs/mysql/files/wordpress-target.sql
 printf "✓	ft_services deployment complete !\n"
 printf "➜	You can access ft_services via this url: $MINIKUBE_IP\n"
 
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
-# kubectl apply -f srcs/ingress-nginx.yaml
-# kubectl apply -f srcs/ingress.yaml
+### Crash Container
+# kubectl exec -it $(kubectl get pods | grep mysql | cut -d" " -f1) -- /bin/sh -c "kill 1"
 
-# kubectl apply \
-  #--filename https://raw.githubusercontent.com/giantswarm/prometheus/master/manifests-all.yaml
-
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
+### Export/Import Files from containers
+# kubectl cp srcs/grafana/grafana.db default/$(kubectl get pods | grep grafana | cut -d" " -f1):/var/lib/grafana/grafana.db
 
 ### TODO:
 # - FTPS fix
 # - Ingress Controller + Nginx
-# - Monitor containers / Telegraf / Metrics Server ??
-# - Check restarts
