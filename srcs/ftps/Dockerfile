@@ -1,13 +1,15 @@
 FROM alpine:latest
 
-RUN apk --no-cache add vsftpd && \
-	apk add openssl
+RUN apk upgrade --update-cache --available && \
+	apk --no-cache add vsftpd
 
-COPY start_vsftpd.sh /start_vsftpd.sh
-COPY vsftpd.conf /etc/vsftpd/vsftpd.conf
+COPY scripts/start.sh /bin/start.sh
+COPY files/vsftpd-target.conf /etc/vsftpd/vsftpd-target.conf
 
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj '/C=FR/ST=75/L=Paris/O=42/CN=sdunckel' -keyout /etc/vsftpd/vsftpd.key -out /etc/vsftpd/vsftpd.crt
+COPY files/vsftpd.key /etc/vsftpd/vsftpd.key
+COPY files/vsftpd.crt /etc/vsftpd/vsftpd.crt
 
-EXPOSE 20 21 21000-21010
+VOLUME /ftps
+EXPOSE 21 21000-21010
 
-ENTRYPOINT ["/start_vsftpd.sh"]
+ENTRYPOINT ["/bin/start.sh"]

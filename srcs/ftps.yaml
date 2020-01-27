@@ -11,6 +11,11 @@ spec:
       targetPort: 21
       protocol: TCP
       name: ftps
+    - port: 21000
+      nodePort: 21000
+      targetPort: 21000
+      protocol: TCP
+      name: ftps-pasv1
   selector:
     app: ftps
   type: NodePort
@@ -38,6 +43,7 @@ spec:
   selector:
     matchLabels:
       app: ftps
+  replicas: 1
   strategy:
     type: Recreate
   template:
@@ -54,12 +60,9 @@ spec:
           value: admin
         - name: FTP_PASSWORD
           value: admin
-        ports:
-        - containerPort: 21
-          name: ftps
         volumeMounts:
         - name: ftps-persistent-storage
-          mountPath: /ftps/data
+          mountPath: /ftps
       volumes:
       - name: ftps-persistent-storage
         persistentVolumeClaim:

@@ -38,7 +38,7 @@ function apply_yaml()
 
 # Deployment list
 
-SERVICE_LIST="mysql wordpress phpmyadmin nginx ftps influxdb grafana telegraf"
+SERVICE_LIST="mysql phpmyadmin nginx wordpress ftps influxdb grafana telegraf"
 
 # Clean if arg1 is clean
 
@@ -70,7 +70,15 @@ MINIKUBE_IP=$(minikube ip)
 
 eval $(minikube docker-env)
 
+# MINIKUBE_IP EDIT
+cp srcs/wordpress/files/wordpress.sql srcs/wordpress/files/wordpress-target.sql
+sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/wordpress/files/wordpress-target.sql
+cp srcs/ftps/files/vsftpd.conf srcs/ftps/files/vsftpd-target.conf
+sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/ftps/files/vsftpd-target.conf
+
 # Build Docker images
+
+printf "✓	Building Docker images...\n"
 
 docker build -t mysql_alpine srcs/mysql
 docker build -t wordpress_alpine srcs/wordpress
@@ -80,23 +88,28 @@ docker build -t grafana_alpine srcs/grafana
 
 # Deploy services
 
+printf "✓	Deploying services...\n"
+
 for SERVICE in $SERVICE_LIST
 do
 	apply_yaml $SERVICE
 done
 
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
-# kubectl apply -f srcs/ingress.yaml > /dev/null
+kubectl apply -f srcs/ingress.yaml > /dev/null
 
 # Import Wordpress database
+kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u root -e 'CREATE DATABASE wordpress;'
+kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/wordpress/files/wordpress-target.sql
 
-cp srcs/mysql/files/wordpress.sql srcs/mysql/files/wordpress-target.sql
-sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/mysql/files/wordpress-target.sql
-kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/mysql/files/wordpress-target.sql
-rm -rf srcs/mysql/files/wordpress-target.sql
+# Remove TMP files
+rm -rf srcs/ftps/files/vsftpd-target.conf
+rm -rf srcs/wordpress/files/wordpress-target.sql
 
 printf "✓	ft_services deployment complete !\n"
 printf "➜	You can access ft_services via this url: $MINIKUBE_IP\n"
+
+### Launch Dashboard
+# minikube dashboard
 
 ### Crash Container
 # kubectl exec -it $(kubectl get pods | grep mysql | cut -d" " -f1) -- /bin/sh -c "kill 1"
@@ -105,5 +118,7 @@ printf "➜	You can access ft_services via this url: $MINIKUBE_IP\n"
 # kubectl cp srcs/grafana/grafana.db default/$(kubectl get pods | grep grafana | cut -d" " -f1):/var/lib/grafana/grafana.db
 
 ### TODO:
-# - FTPS fix
-# - Ingress Controller + Nginx
+# - # Fix SSH Overlap on Minikube
+# - # FTPS fix (crash on transfer)
+# - # Ingress Controller + Nginx
+# - Persistent Mysql

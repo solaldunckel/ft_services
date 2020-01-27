@@ -1,8 +1,8 @@
 FROM nginx:alpine
 
 RUN apk upgrade --update-cache --available && \
-    apk add openssl && \
-	apk add openssh-server && \
+    apk add openrc openssl openssh-server && \
+	rc-update add sshd && \
     rm -rf /var/cache/apk/*
 
 RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj '/C=FR/ST=75/L=Paris/O=42/CN=sdunckel' -keyout /etc/ssl/certs/localhost.key -out /etc/ssl/certs/localhost.crt

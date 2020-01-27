@@ -9,9 +9,9 @@ spec:
   selector:
     app: nginx
   ports:
-    # - name: ssh
-    #   port: 22
-    #   nodePort: 22
+    - name: ssh
+      port: 22
+      nodePort: 22
     - name: http
       port: 80
       nodePort: 80
@@ -46,10 +46,10 @@ spec:
           value: admin
         - name: SSH_PASSWORD
           value: admin
-        ports:
+        # ports:
         # - containerPort: 22
         #   name: ssh
-        - containerPort: 80
-          name: http
-        - containerPort: 443
-          name: https
+        # - containerPort: 80
+        #   name: http
+        # - containerPort: 443
+        #   name: https
