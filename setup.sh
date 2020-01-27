@@ -50,7 +50,6 @@ then
 		kubectl delete -f srcs/$SERVICE.yaml > /dev/null
 	done
 	kubectl delete -f srcs/ingress.yaml > /dev/null
-	kubectl delete -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
 	printf "✓	Clean complete !\n"
 	exit
 fi
@@ -71,10 +70,10 @@ MINIKUBE_IP=$(minikube ip)
 eval $(minikube docker-env)
 
 # MINIKUBE_IP EDIT
-cp srcs/wordpress/files/wordpress.sql srcs/wordpress/files/wordpress-target.sql
-sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/wordpress/files/wordpress-target.sql
-cp srcs/ftps/files/vsftpd.conf srcs/ftps/files/vsftpd-target.conf
-sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/ftps/files/vsftpd-target.conf
+cp srcs/wordpress/files/wordpress.sql srcs/wordpress/files/wordpress-tmp.sql
+sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/wordpress/files/wordpress-tmp.sql
+cp srcs/ftps/files/vsftpd.conf srcs/ftps/files/vsftpd-tmp.conf
+sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/ftps/files/vsftpd-tmp.conf
 
 # Build Docker images
 
@@ -99,11 +98,11 @@ kubectl apply -f srcs/ingress.yaml > /dev/null
 
 # Import Wordpress database
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u root -e 'CREATE DATABASE wordpress;'
-kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/wordpress/files/wordpress-target.sql
+kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/wordpress/files/wordpress-tmp.sql
 
 # Remove TMP files
-rm -rf srcs/ftps/files/vsftpd-target.conf
-rm -rf srcs/wordpress/files/wordpress-target.sql
+rm -rf srcs/ftps/files/vsftpd-tmp.conf
+rm -rf srcs/wordpress/files/wordpress-tmp.sql
 
 printf "✓	ft_services deployment complete !\n"
 printf "➜	You can access ft_services via this url: $MINIKUBE_IP\n"
@@ -121,4 +120,3 @@ printf "➜	You can access ft_services via this url: $MINIKUBE_IP\n"
 # - # Fix SSH Overlap on Minikube
 # - # FTPS fix (crash on transfer)
 # - # Ingress Controller + Nginx
-# - Persistent Mysql

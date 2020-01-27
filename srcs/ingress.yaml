@@ -6,7 +6,8 @@ metadata:
     ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - http:
+  - host: ft-services.info
+    http:
       paths:
         - path: /
           backend:

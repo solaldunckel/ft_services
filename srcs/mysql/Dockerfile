@@ -1,15 +1,18 @@
 FROM alpine:latest
+MAINTAINER leafney "babycoolzx@126.com"
 
-RUN apk add --no-cache mysql mysql-client
+RUN apk update && \
+	apk add mysql mysql-client && \
+	addgroup mysql mysql && \
+	mkdir /scripts && \
+	rm -rf /var/cache/apk/*
 
-COPY scripts/start.sh /start.sh
+VOLUME ["/var/lib/mysql"]
+
+COPY scripts/start.sh /scripts/start.sh
 COPY files/my.cnf /etc/mysql/my.cnf
+RUN chmod +x /scripts/start.sh
 
-RUN mkdir -p /run/mysqld
-
-WORKDIR /db
-VOLUME /db
 EXPOSE 3306
 
-HEALTHCHECK CMD ["mysqladmin", "ping"]
-CMD ["/start.sh"]
+ENTRYPOINT ["/scripts/start.sh"]
