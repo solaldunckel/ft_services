@@ -1,15 +1,14 @@
 FROM alpine:latest
 
-RUN apk upgrade --update-cache --available && \
-	apk --no-cache add vsftpd
+RUN apk upgrade && \
+    printf '%s\n' \
+      '@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing' \
+      >> /etc/apk/repositories && \
+    apk update && \
+    apk add pure-ftpd@testing="1.0.49-r0" && \
+    rm -rf /var/cache/apk/*
 
-COPY scripts/start.sh /bin/start.sh
-COPY files/vsftpd-tmp.conf /etc/vsftpd/vsftpd-tmp.conf
+COPY files/pure-ftpd.pem /etc/ssl/private/
+COPY scripts/start-tmp.sh /bin/start-tmp.sh
 
-COPY files/vsftpd.key /etc/vsftpd/vsftpd.key
-COPY files/vsftpd.crt /etc/vsftpd/vsftpd.crt
-
-VOLUME /ftps
-EXPOSE 21 21000-21010
-
-ENTRYPOINT ["/bin/start.sh"]
+ENTRYPOINT ["/bin/start-tmp.sh"]

@@ -7,18 +7,12 @@ metadata:
 spec:
   ports:
     - port: 21
-      nodePort: 21
-      targetPort: 21
-      protocol: TCP
       name: ftps
     - port: 21000
-      nodePort: 21000
-      targetPort: 21000
-      protocol: TCP
-      name: ftps-pasv1
+      name: ftps-data
   selector:
     app: ftps
-  type: NodePort
+  type: LoadBalancer
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -60,6 +54,11 @@ spec:
           value: admin
         - name: FTP_PASSWORD
           value: admin
+        ports:
+        - containerPort: 21
+          hostPort: 21
+        - containerPort: 21000
+          hostPort: 21000
         volumeMounts:
         - name: ftps-persistent-storage
           mountPath: /ftps

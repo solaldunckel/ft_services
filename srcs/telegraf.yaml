@@ -18,6 +18,11 @@ data:
   telegraf.conf: |+
     # Configuration for telegraf agent
     [agent]
+    ## Default data collection interval for all inputs
+      interval = "1s"
+      ## Rounds collection interval to 'interval'
+      ## ie, if interval="10s" then always collect on :00, :10, :20, etc.
+      round_interval = true
     ###############################################################################
     #                            OUTPUT PLUGINS                                   #
     ###############################################################################
@@ -38,6 +43,17 @@ data:
       bearer_token = "/run/secrets/kubernetes.io/serviceaccount/token"
       resource_include = ["pods"]
       insecure_skip_verify = true
+
+    # Read metrics about cpu usage
+    [[inputs.cpu]]
+      ## Whether to report per-cpu stats or not
+      percpu = true
+      ## Whether to report total system cpu stats or not
+      totalcpu = true
+      ## If true, collect raw CPU time metrics.
+      collect_cpu_time = false
+      ## If true, compute and report the sum of all non-idle CPU states.
+      report_active = false
 ---
 apiVersion: v1
 kind: Service

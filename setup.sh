@@ -5,17 +5,6 @@ if [ -d "/goinfre" ]; then
 	[ -z "${USER}" ] && export USER=`whoami`
 
 	mkdir -p /goinfre/$USER
-	# Config
-	docker_destination="/goinfre/$USER/docker" #=> Select docker destination (goinfre is a good choice)
-
-	# Create needed files in destination and make symlinks
-	if [ ! -d $docker_destination ]; then
-		pkill Docker
-		rm -rf ~/Library/Containers/com.docker.docker ~/.docker
-		mkdir -p $docker_destination/{com.docker.docker,.docker}
-		ln -sf $docker_destination/com.docker.docker ~/Library/Containers/com.docker.docker
-		ln -sf $docker_destination/.docker ~/.docker
-	fi
 
 	# Set the minikube directory in /goinfre
 	export MINIKUBE_HOME="/goinfre/$USER"
@@ -61,6 +50,7 @@ then
 	minikube start --cpus=2 --memory 4000 --vm-driver=virtualbox --extra-config=apiserver.service-node-port-range=1-35000
 	minikube addons enable metrics-server
 	minikube addons enable ingress
+	minikube addons enable dashboard
 fi
 
 MINIKUBE_IP=$(minikube ip)
@@ -72,8 +62,8 @@ eval $(minikube docker-env)
 # MINIKUBE_IP EDIT
 cp srcs/wordpress/files/wordpress.sql srcs/wordpress/files/wordpress-tmp.sql
 sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/wordpress/files/wordpress-tmp.sql
-cp srcs/ftps/files/vsftpd.conf srcs/ftps/files/vsftpd-tmp.conf
-sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/ftps/files/vsftpd-tmp.conf
+cp srcs/ftps/scripts/start.sh srcs/ftps/scripts/start-tmp.sh
+sed -i '' "s/MINIKUBE_IP/$MINIKUBE_IP/g" srcs/ftps/scripts/start-tmp.sh
 
 # Build Docker images
 
@@ -101,7 +91,7 @@ kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql -u roo
 kubectl exec -i $(kubectl get pods | grep mysql | cut -d" " -f1) -- mysql wordpress -u root < srcs/wordpress/files/wordpress-tmp.sql
 
 # Remove TMP files
-rm -rf srcs/ftps/files/vsftpd-tmp.conf
+rm -rf srcs/ftps/scripts/start-tmp.sh
 rm -rf srcs/wordpress/files/wordpress-tmp.sql
 
 printf "✓	ft_services deployment complete !\n"
@@ -110,13 +100,11 @@ printf "➜	You can access ft_services via this url: $MINIKUBE_IP\n"
 ### Launch Dashboard
 # minikube dashboard
 
+### Test SSH
+# ssh admin@$(minikube ip) -p 4000
+
 ### Crash Container
 # kubectl exec -it $(kubectl get pods | grep mysql | cut -d" " -f1) -- /bin/sh -c "kill 1"
 
 ### Export/Import Files from containers
 # kubectl cp srcs/grafana/grafana.db default/$(kubectl get pods | grep grafana | cut -d" " -f1):/var/lib/grafana/grafana.db
-
-### TODO:
-# - # Fix SSH Overlap on Minikube
-# - # FTPS fix (crash on transfer)
-# - # Ingress Controller + Nginx

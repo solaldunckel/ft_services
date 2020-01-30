@@ -5,8 +5,7 @@ metadata:
   name: phpmyadmin
 spec:
   ports:
-    - protocol: TCP
-      port: 80
+    - port: 80
       nodePort: 5000
   selector:
     app: phpmyadmin
@@ -15,7 +14,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: phpmyadmin-deployment
+  name: phpmyadmin
   labels:
     app: phpmyadmin
 spec:
@@ -30,17 +29,13 @@ spec:
     spec:
       containers:
         - name: phpmyadmin
-          image: phpmyadmin/phpmyadmin
+          image: etopian/phpmyadmin
           ports:
             - containerPort: 80
           env:
-            - name: PMA_HOST
+            - name: MYSQL_HOSTNAME
               value: mysql
-            - name: PMA_PORT
-              value: "3306"
-            - name: PMA_USER
+            - name: PMA_USERNAME
               value: root
             - name: PMA_PASSWORD
-              value: password
-            - name: MYSQL_ROOT_PASSWORD
               value: password
