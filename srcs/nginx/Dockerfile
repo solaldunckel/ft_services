@@ -15,5 +15,7 @@ COPY files/sshd_config /etc/ssh/
 COPY files/ssh_host_dsa_key /etc/ssh
 COPY files/ssh_host_rsa_key /etc/ssh
 
+RUN chmod 600 /etc/ssh/ssh_host_*
+
 EXPOSE 4000 80 443
 ENTRYPOINT sh /start.sh
