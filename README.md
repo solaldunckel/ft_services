@@ -1,14 +1,14 @@
 # ft_services
 
-## Final grade : 100/100
-
 ## Description
 
 ft_services is a project that ask you to setup a Kubernetes cluster with multiple containers such as Wordpress, MySQL, Grafana...
 
 ## Usage
 
-You must have ```VirtualBox```, ```minikube``` and ```kubectl``` installed.
+You must have ```Docker```, ```VirtualBox```, ```minikube``` and ```kubectl``` installed.
+
+* Setup :
 ```shell
 # Start the setup
 ./setup.sh
@@ -16,7 +16,19 @@ You must have ```VirtualBox```, ```minikube``` and ```kubectl``` installed.
 # Remove all containers
 ./setup.sh clean
 ```
-After setup you can access the services through the IP that was assigned to you (```minikube ip```)
+
+* Exposed services access :
+
+```ip_address:port```
+
+* SSH :
+```shell
+ssh admin@$(minikube ip) -p 4000
+```
+
+* FTPS :
+
+Use ```Filezilla``` and connect with ```admin:admin``` on port 21
 
 ## Features
 * ```FTPS``` on port 21
@@ -24,4 +36,5 @@ After setup you can access the services through the IP that was assigned to you 
 * ```Wordpress``` on port 5050
 * ```Phpmyadmin``` on port 5050
 * ```Grafana``` on port 3000
+* ```InfluxDB``` on port 8086
 * ```Nginx``` on port 80, 443 (SSL) and 4000 (SSH)
